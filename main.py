@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 load_dotenv(dotenv_path='env.env', verbose=True)
 
 bot = commands.Bot(
-    command_prefix='$$$',
+    command_prefix='^^^',
     help_command=None,
     intents=Intents.all()
 )

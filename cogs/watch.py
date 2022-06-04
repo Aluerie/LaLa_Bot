@@ -34,6 +34,10 @@ class CheckMainBot(commands.Cog):
         self.counter = 0
         self.sent_already = 0
 
+    @commands.command()
+    async def ping(self, ctx: commands.Context):
+        await ctx.send(f'allo {Ems.MadgeThreat}')
+
     @tasks.loop(seconds=55)  # minutes=5)
     async def checkmain(self):
         server = self.bot.get_guild(Sid.alu)
