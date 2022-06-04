@@ -34,7 +34,9 @@ class CheckMainBot(commands.Cog):
         self.counter = 0
         self.sent_already = 0
 
-    @commands.command()
+    @commands.command(
+        aliases=['help', 'hello', 'allo', 'h', 'a']
+    )
     async def ping(self, ctx: commands.Context):
         await ctx.send(f'allo {Ems.MadgeThreat}')
 
