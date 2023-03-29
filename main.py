@@ -1,27 +1,28 @@
-from discord import Embed, Intents, Status
+import discord
 from discord.ext import commands, tasks
 
 from config import TOKEN
 
 # Global const Variables
-Cid_spam_me = 970823670702411810
-Clr_prpl = 0x9678b6
-Ems_MadgeThreat = '<:DankMadgeThreat:854318972102770728>'
-Mntn_Irene = '<@!312204139751014400>'
-Sid_christ = 759916212842659850
-Uid_bot = 713124699663499274
+SPAM_CHANNEL_ID = 970823670702411810
+PURPLE_COLOUR = 0x9678b6
+MADGE_EMOTE = '<:DankMadgeThreat:854318972102770728>'
+MENTION_IRENE = '<@!312204139751014400>'
+TEST_GUILD_ID = 759916212842659850
+ALUBOT_ID = 713124699663499274
 
 
-class MandaraBot(commands.Bot):
+class LaLaBot(commands.Bot):
     def __init__(self):
         super().__init__(
             command_prefix='^^^',
             help_command=None,
-            intents=Intents(
+            intents=discord.Intents(
                 guilds=True,
                 members=True,
                 presences=True,
-                message_content=True
+                message_content=True,
+                messages=True
             )
         )
         self.counter = 0
@@ -29,42 +30,55 @@ class MandaraBot(commands.Bot):
 
     async def setup_hook(self) -> None:
         # start the task to run in the background
-        self.checkmain.start()
+        self.watch_loop.start()
 
     async def on_ready(self):
         print(f'Logged in as {self.user}')
 
-    @tasks.loop(seconds=55)
-    async def checkmain(self):
-        alubot = self.get_guild(Sid_christ).get_member(Uid_bot)
+    # TYPE HINT MOMENTS
 
-        if alubot.status == Status.online:
+    @property
+    def test_guild(self) -> discord.Guild:
+        return self.get_guild(TEST_GUILD_ID)  # type: ignore # known ID
+
+    @property
+    def alubot(self) -> discord.Member:
+        return self.test_guild.get_member(ALUBOT_ID) # type: ignore # known ID
+
+    @property
+    def spam_channel(self) -> discord.TextChannel:
+        return self.test_guild.get_channel(SPAM_CHANNEL_ID)  # type: ignore # known ID
+    
+    # THE LOOP ITSELF
+
+    @tasks.loop(seconds=55)
+    async def watch_loop(self):
+        alubot = self.alubot
+
+        if alubot.status == discord.Status.online:
             self.counter = 0
             self.sent_already = 0
 
-        if alubot.status == Status.offline:
+        if alubot.status == discord.Status.offline:
             self.counter += 1
 
         if self.counter > 11 and self.sent_already == 0:
             self.sent_already = 1
-            content = '{0}, {1} {1} {1}'.format(Mntn_Irene, Ems_MadgeThreat)
-            em = Embed(
-                color=Clr_prpl,
-                title=f"{alubot.display_name} is now offline"
-            )
-            await self.get_channel(Cid_spam_me).send(content=content, embed=em)
+            c = '{0}, {1} {1} {1}'.format(MENTION_IRENE, MADGE_EMOTE)
+            e = discord.Embed(color=PURPLE_COLOUR, title=f"{alubot.display_name} is now offline")
+            await self.spam_channel.send(content=c, embed=e)
 
-    @checkmain.before_loop
+    @watch_loop.before_loop
     async def before(self):
         await self.wait_until_ready()
 
 
-bot = MandaraBot()
+bot = LaLaBot()
 
 
 @bot.command(aliases=['help', 'hello', 'allo', 'h', 'a'])
 async def ping(ctx: commands.Context):
-    await ctx.send(f'allo {Ems_MadgeThreat}')
+    await ctx.send(f'allo {MADGE_EMOTE}')
 
 
 bot.run(TOKEN)
