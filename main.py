@@ -12,7 +12,7 @@ TEST_GUILD_ID = 759916212842659850
 ALUBOT_ID = 713124699663499274
 
 
-class LaLaBot(commands.Bot):
+class LalaBot(commands.Bot):
     def __init__(self):
         super().__init__(
             command_prefix='^^^',
@@ -73,7 +73,7 @@ class LaLaBot(commands.Bot):
         await self.wait_until_ready()
 
 
-bot = LaLaBot()
+bot = LalaBot()
 
 
 @bot.command(aliases=['help', 'hello', 'allo', 'h', 'a'])
