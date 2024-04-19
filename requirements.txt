@@ -1,1 +1,2 @@
+--extra-index-url https://pip.twitchio.dev
 discord.py

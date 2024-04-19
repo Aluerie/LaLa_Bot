@@ -6,8 +6,8 @@ from config import TOKEN
 # Global const Variables
 SPAM_CHANNEL_ID = 970823670702411810
 PURPLE_COLOUR = 0x9678B6
-MADGE_EMOTE = "<:DankMadgeThreat:854318972102770728>"
-MENTION_IRENE = "<@!312204139751014400>"
+MADGE_EMOTE = "<:DankMadgeThreat:1125591898241892482>"
+MENTION_OWNER = "<@!312204139751014400>"
 TEST_GUILD_ID = 759916212842659850
 ALUBOT_ID = 713124699663499274
 
@@ -40,7 +40,7 @@ class LalaBot(commands.Bot):
         elif alubot.status == discord.Status.offline and not self.sent_already:
             self.counter += 1
             if self.counter > 11:
-                content = "{0}, {1} {1} {1}".format(MENTION_IRENE, MADGE_EMOTE)
+                content = "{0}, {1} {1} {1}".format(MENTION_OWNER, MADGE_EMOTE)
                 embed = discord.Embed(color=PURPLE_COLOUR, title=f"{alubot.display_name} is now offline")
                 spam_channel = self.test_guild.get_channel(SPAM_CHANNEL_ID)
                 await spam_channel.send(content=content, embed=embed)  # type: ignore # known ID
