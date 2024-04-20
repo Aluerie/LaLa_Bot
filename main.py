@@ -14,8 +14,18 @@ ALUBOT_ID = 713124699663499274
 
 class LalaBot(commands.Bot):
     def __init__(self):
-        intents = discord.Intents(guilds=True, members=True, presences=True, message_content=True, messages=True)
-        super().__init__(command_prefix="^^^", help_command=None, intents=intents)
+        intents = discord.Intents(
+            guilds=True,
+            members=True,
+            presences=True,
+            message_content=True,
+            messages=True,
+        )
+        super().__init__(
+            command_prefix=commands.when_mentioned_or("^^^"),
+            help_command=None,
+            intents=intents,
+        )
         self.counter: int = 0
         self.sent_already: bool = False
 
@@ -41,7 +51,9 @@ class LalaBot(commands.Bot):
             self.counter += 1
             if self.counter > 11:
                 content = "{0}, {1} {1} {1}".format(MENTION_OWNER, MADGE_EMOTE)
-                embed = discord.Embed(color=PURPLE_COLOUR, title=f"{alubot.display_name} is now offline")
+                embed = discord.Embed(
+                    color=PURPLE_COLOUR, title=f"{alubot.display_name} is now offline"
+                )
                 spam_channel = self.test_guild.get_channel(SPAM_CHANNEL_ID)
                 await spam_channel.send(content=content, embed=embed)  # type: ignore # known ID
                 self.sent_already = True
@@ -59,4 +71,10 @@ async def ping(ctx: commands.Context):
     await ctx.send(f"allo {MADGE_EMOTE}")
 
 
+async def on_command_error(ctx: commands.Context, error: commands.CommandInvokeError):
+    if isinstance(error, commands.CommandNotFound):
+        await ctx.send(f"allo {MADGE_EMOTE}")
+
+
+bot.add_listener(on_command_error)
 bot.run(TOKEN)
