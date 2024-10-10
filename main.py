@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+from typing import Self, TypedDict, override
 
 import discord
 from discord.ext import commands, tasks
@@ -14,12 +15,18 @@ MADGE_EMOTE = "<:DankMadgeThreat:1125591898241892482>"
 MENTION_OWNER = "<@!312204139751014400>"
 TEST_GUILD_ID = 759916212842659850
 ALUBOT_ID = 713124699663499274
+GLORIA_ID = 1293739303473774702
 COMMAND_PREFIX = "^^^"
 LALA_BOT_ID = 812763204010246174
 
 
+class WatchStatus(TypedDict):
+    counter: int
+    sent_already: bool
+
+
 class LalaBot(commands.Bot):
-    def __init__(self):
+    def __init__(self) -> None:
         intents = discord.Intents(
             guilds=True,
             members=True,
@@ -32,40 +39,51 @@ class LalaBot(commands.Bot):
             help_command=None,
             intents=intents,
         )
-        self.counter: int = 0
-        self.sent_already: bool = False
+        self.watching: dict[int, WatchStatus] = {
+            bot_id: {"counter": 0, "sent_already": False}
+            for bot_id in [
+                ALUBOT_ID,
+                GLORIA_ID,
+            ]
+        }  # mapping bot id -> WatchStatus
 
+    @override
     async def setup_hook(self) -> None:
         self.watch_loop.start()
 
-    async def on_ready(self):
+    async def on_ready(self) -> None:
         print(f"Logged in as {self.user}")
 
     @discord.utils.cached_property
     def test_guild(self) -> discord.Guild:
-        return self.get_guild(TEST_GUILD_ID)  # type: ignore # known ID
+        return self.get_guild(TEST_GUILD_ID)  # pyright: ignore[reportReturnType]
+
+    @discord.utils.cached_property
+    def spam_channel(self) -> discord.TextChannel:
+        return self.test_guild.get_channel(SPAM_CHANNEL_ID)  # pyright: ignore[reportReturnType]
 
     @tasks.loop(seconds=55)
-    async def watch_loop(self):
-        alubot: discord.Member = self.test_guild.get_member(ALUBOT_ID)  # type: ignore # known ID
+    async def watch_loop(self) -> None:
+        for bot_id, watch_status in self.watching.items():
+            bot: discord.Member = self.test_guild.get_member(bot_id)  # pyright: ignore[reportAssignmentType]
 
-        if alubot.status == discord.Status.online:
-            self.counter = 0
-            self.sent_already = False
+            if bot.status == discord.Status.online:
+                watch_status["counter"] = 0
+                watch_status["sent_already"] = False
 
-        elif alubot.status == discord.Status.offline and not self.sent_already:
-            self.counter += 1
-            if self.counter > 11:
-                content = "{0}, {1} {1} {1}".format(MENTION_OWNER, MADGE_EMOTE)
-                embed = discord.Embed(color=PURPLE_COLOUR, title=f"{alubot.display_name} is now offline")
-                spam_channel = self.test_guild.get_channel(SPAM_CHANNEL_ID)
-                await spam_channel.send(content=content, embed=embed)  # type: ignore # known ID
-                self.sent_already = True
+            elif bot.status == discord.Status.offline and not watch_status["sent_already"]:
+                watch_status["counter"] += 1
+                if watch_status["counter"] > 11:
+                    content = "{0}, {1} {1} {1}".format(MENTION_OWNER, MADGE_EMOTE)
+                    embed = discord.Embed(color=PURPLE_COLOUR, title=f"{bot.display_name} is now offline")
+                    await self.spam_channel.send(content=content, embed=embed)
+                    watch_status["sent_already"] = True
 
     @watch_loop.before_loop
-    async def before(self):
+    async def before(self) -> None:
         await self.wait_until_ready()
 
+    @override
     async def on_message(self, message: discord.Message, /) -> None:
         mention_regex = re.compile(rf"<@!?{LALA_BOT_ID}>")
 
@@ -75,7 +93,8 @@ class LalaBot(commands.Bot):
 
         await self.process_commands(message)
 
-    async def on_command_error(self, ctx: commands.Context, error: commands.CommandError):
+    @override
+    async def on_command_error(self, ctx: commands.Context[Self], error: commands.CommandError) -> None:
         if isinstance(error, commands.CommandNotFound):
             await ctx.send(f"allo {MADGE_EMOTE}")
 
@@ -84,11 +103,8 @@ bot = LalaBot()
 
 
 @bot.command(aliases=["help", "hello", "allo", "h", "a"])
-async def ping(ctx: commands.Context):
+async def ping(ctx: commands.Context[LalaBot]) -> None:
     await ctx.send(f"allo {MADGE_EMOTE}")
 
 
-bot.run(TOKEN)
-bot.run(TOKEN)
-bot.run(TOKEN)
 bot.run(TOKEN)
