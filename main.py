@@ -44,7 +44,7 @@ class LalaBot(commands.Bot):
             help_command=None,
             intents=intents,
             activity=discord.Streaming(
-                name="\N{YELLOW HEART} %%systemctl %%ping",
+                name="\N{BLACK HEART} %systemctl %ping",
                 url="https://www.twitch.tv/irene_adler__",
             ),
         )
