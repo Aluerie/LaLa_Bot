@@ -21,7 +21,7 @@ MENTION_OWNER = "<@!312204139751014400>"
 TEST_GUILD_ID = 759916212842659850
 ALUBOT_ID = 713124699663499274
 GLORIA_ID = 1293739303473774702
-COMMAND_PREFIX = "^^^"
+COMMAND_PREFIX = "%"
 LALA_BOT_ID = 812763204010246174
 
 
@@ -43,6 +43,10 @@ class LalaBot(commands.Bot):
             command_prefix=commands.when_mentioned_or(COMMAND_PREFIX),
             help_command=None,
             intents=intents,
+            activity=discord.Streaming(
+                name="\N{YELLOW HEART} %%systemctl %%ping",
+                url="https://www.twitch.tv/irene_adler__",
+            ),
         )
         self.watching: dict[int, WatchStatus] = {
             bot_id: {"counter": 0, "sent_already": False}
@@ -90,6 +94,8 @@ class LalaBot(commands.Bot):
 
     @override
     async def on_message(self, message: discord.Message, /) -> None:
+        # it doesn't react when doing simple "@LalaBot" otherwise even with commands.when_mentioned
+        # it needs a command to follow like "@LalaBot hey"
         mention_regex = re.compile(rf"<@!?{LALA_BOT_ID}>")
 
         if mention_regex.fullmatch(message.content):
@@ -103,7 +109,7 @@ class LalaBot(commands.Bot):
         if isinstance(error, commands.CommandNotFound):
             # manual list, but whatever.
             await ctx.send(f"allo {MADGE_EMOTE}. My commands are ^^^ping and ^^^system.")
-        elif isinstance(error, commands.BadLiteralArgument):
+        elif isinstance(error, (commands.BadLiteralArgument, commands.MissingRequiredArgument)):
             await ctx.send(str(error))
 
 
@@ -125,7 +131,7 @@ async def systemctl(
 ) -> None:
     try:
         result = os.system(f"sudo systemctl {request} {service}")
-        await ctx.send(f"I think we successfully did it. {result}")
+        await ctx.send(f"I think we successfully did it. `result={result}`")
     except Exception as error:
         log.error(error, stack_info=True)
         # it might not go off
