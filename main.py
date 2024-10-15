@@ -1,12 +1,17 @@
 from __future__ import annotations
 
+import logging
+import os
 import re
-from typing import Self, TypedDict, override
+from typing import Literal, Self, TypedDict, override
 
 import discord
 from discord.ext import commands, tasks
 
 from config import TOKEN
+
+log = logging.getLogger(__name__)
+log.setLevel(logging.INFO)
 
 # Global const Variables
 SPAM_CHANNEL_ID = 970823670702411810
@@ -96,7 +101,10 @@ class LalaBot(commands.Bot):
     @override
     async def on_command_error(self, ctx: commands.Context[Self], error: commands.CommandError) -> None:
         if isinstance(error, commands.CommandNotFound):
-            await ctx.send(f"allo {MADGE_EMOTE}")
+            # manual list, but whatever.
+            await ctx.send(f"allo {MADGE_EMOTE}. My commands are ^^^ping and ^^^system.")
+        elif isinstance(error, commands.BadLiteralArgument):
+            await ctx.send(str(error))
 
 
 bot = LalaBot()
@@ -105,6 +113,23 @@ bot = LalaBot()
 @bot.command(aliases=["help", "hello", "allo", "h", "a"])
 async def ping(ctx: commands.Context[LalaBot]) -> None:
     await ctx.send(f"allo {MADGE_EMOTE}")
+
+
+MY_BOT_SERVICES = Literal["alubot", "gloria", "irenesbot", "lalabot"]
+
+
+@commands.is_owner()
+@bot.command()
+async def systemctl(
+    ctx: commands.Context[LalaBot], request: Literal["restart", "stop", "start"], service: MY_BOT_SERVICES
+) -> None:
+    try:
+        result = os.system(f"sudo systemctl {request} {service}")
+        await ctx.send(f"I think we successfully did it. {result}")
+    except Exception as error:
+        log.error(error, stack_info=True)
+        # it might not go off
+        await ctx.send("Something went wrong.")
 
 
 bot.run(TOKEN)
